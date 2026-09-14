@@ -79,17 +79,22 @@ function finishStory(){if(!storyActive)return;storyActive=false;clearInterval(st
 function advanceStory(){if(!storyActive)return;if(storyTyping){clearInterval(storyTimer);storyTyping=false;storyText.textContent=storyLines[storyIndex];return}storyIndex++;if(storyIndex>=storyLines.length){finishStory();return}setStoryFrame(storyIndex);typeStoryLine(storyLines[storyIndex])}
 storyIntro.addEventListener('pointerdown',e=>{if(e.target!==storySkip)advanceStory()});storySkip.addEventListener('click',e=>{e.stopPropagation();finishStory()});
 function focusHighwayNow(){setTimeout(()=>{try{highway.setAttribute('tabindex','0');highway.focus({preventScroll:true});highway.contentWindow.focus();highway.contentWindow.postMessage({channel:'neon-input',type:'focus'},'*')}catch(e){}},45)}
-function highwayIsVisible(){return highway.style.display!=='none'}
+function highwayIsVisible(){return getComputedStyle(highway).display!=='none'}
 function focusDriftNow(){setTimeout(()=>{try{drift.setAttribute('tabindex','0');drift.focus({preventScroll:true});drift.contentWindow.focus();drift.contentWindow.postMessage({channel:'neon-drift-input',type:'focus'},'*')}catch(e){}},45)}
-function driftIsVisible(){return drift.style.display!=='none'}
+function driftIsVisible(){return getComputedStyle(drift).display!=='none'}
 const driftHeldKeys={};
 function driftSyncTick(){
   if(!driftIsVisible())return;
   try{drift.contentWindow.postMessage({channel:'neon-drift-input',type:'sync',keys:driftHeldKeys},'*')}catch(err){}
 }
 setInterval(driftSyncTick,40)
+function neonIsTyping(e){
+ const target=e.target;
+ return !!document.querySelector('dialog[open]') ||
+  !!(target && (target.isContentEditable || target.closest?.('input,textarea,select,[contenteditable="true"]')));
+}
 function forwardDriftKey(e,down){
-  if(storyActive||!driftIsVisible())return;
+  if(storyActive||neonIsTyping(e)||!driftIsVisible())return;
   const k=e.key;
   if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','a','A','d','D','w','W','s','S'].includes(k))return;
   driftHeldKeys[k.toLowerCase()]=!!down;
@@ -99,7 +104,7 @@ function forwardDriftKey(e,down){
 addEventListener('keydown',e=>forwardDriftKey(e,true),{capture:true});
 addEventListener('keyup',e=>forwardDriftKey(e,false),{capture:true});
 
-function forwardHighwayKey(e,down){if(storyActive||!highwayIsVisible())return;const k=e.key;if(!['ArrowLeft','ArrowRight','ArrowUp','a','A','d','D','w','W'].includes(k))return;try{highway.contentWindow.postMessage({channel:'neon-input',type:down?'down':'up',key:k},'*')}catch(err){}e.preventDefault()}
+function forwardHighwayKey(e,down){if(storyActive||neonIsTyping(e)||!highwayIsVisible())return;const k=e.key;if(!['ArrowLeft','ArrowRight','ArrowUp','a','A','d','D','w','W'].includes(k))return;try{highway.contentWindow.postMessage({channel:'neon-input',type:down?'down':'up',key:k},'*')}catch(err){}e.preventDefault()}
 addEventListener('keydown',e=>{if(storyActive&&(e.key==='Enter'||e.key===' ')){e.preventDefault();advanceStory();return}forwardHighwayKey(e,true)},{capture:true});addEventListener('keyup',e=>forwardHighwayKey(e,false),{capture:true});
 
 
