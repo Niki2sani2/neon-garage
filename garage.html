@@ -451,5 +451,31 @@ applySpoiler();
   money();
   refreshShop();
 })();
+</script><script>
+window.createNeonCarPreview = function(player) {
+ const preview = stage.cloneNode(true);
+ preview.className = 'neon-car-preview';
+ preview.removeAttribute('style');
+ preview.querySelectorAll('[id]').forEach(node=>node.removeAttribute('id'));
+ const color=Object.hasOwn(bodyMap,player.color)?player.color:'graphite';
+ const wheel=wheelMap[Object.hasOwn(wheelMap,player.wheel)?player.wheel:'standard'];
+ const spoiler=spoilerMap[Object.hasOwn(spoilerMap,player.spoiler)?player.spoiler:'none'];
+ preview.style.setProperty('--bodyLift',player.ride==='low'?'0%':'-4.8%');
+ preview.style.setProperty('--pad-color',player.brake_red===true?'#ed292f':'#596570');
+ preview.querySelector('.body').src=bodyMap[color];
+ preview.querySelectorAll('.wheelRot').forEach(node=>node.style.transform='none');
+ preview.querySelectorAll('.wheelSprite').forEach(img=>{
+  img.src=wheel.src;img.alt='';img.style.width=wheel.width+'%';
+  img.style.left=wheel.left+'%';img.style.top=wheel.top+'%';
+ });
+ const layer=preview.querySelector('.spoilerLayer');layer.hidden=!spoiler.src;
+ if(spoiler.src){const img=layer.querySelector('img');img.src=spoiler.src;
+  Object.assign(img.style,{left:spoiler.x/817*100+'%',top:spoiler.y/248*100+'%',width:spoiler.width/817*100+'%',height:spoiler.height/248*100+'%',transform:'rotate('+(spoiler.rotate||0)+'deg)'});
+ }
+ preview.querySelectorAll('img').forEach(img=>img.alt='');
+ preview.setAttribute('role','img');
+ preview.setAttribute('aria-label','Auto: '+color+', '+wheel.label+', '+(player.ride==='low'?'tiefergelegt':'Serienhöhe')+', '+(player.brake_red?'rote Bremsen':'Standardbremsen')+', '+spoiler.label);
+ return preview;
+};
 </script></body>
 </html>
