@@ -43,7 +43,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#070b12}ifr
 @keyframes storyBob{0%,100%{margin-bottom:0}50%{margin-bottom:7px}}@keyframes storyNextPulse{0%,100%{opacity:.48}50%{opacity:1}}
 @media(max-width:760px){#storyChar{left:4vw;bottom:30vh;width:39vw;max-width:220px}#storyTag{left:6vw;bottom:27vh}#storyBox{left:4vw;right:4vw;bottom:5vh;min-height:155px;padding:17px 18px}#storyText{font-size:14px}}
 
-</style></head><body>
+</style><link rel="stylesheet" href="community.css"></head><body>
 <div id="boot">
   <div id="bootUi">
     <div id="bootBarFrame"><div id="bootFill"></div></div>
@@ -75,7 +75,7 @@ function typeStoryLine(text){clearInterval(storyTimer);storyText.textContent='';
 function setStoryFrame(i){storyPortrait.style.opacity='.25';setTimeout(()=>{storyPortrait.src=storyFrames[i%storyFrames.length];storyPortrait.style.opacity='1';},70)}
 function startStory(){storyActive=true;storyIndex=0;storyPortrait.src=storyFrames[0];storyIntro.style.display='block';requestAnimationFrame(()=>storyIntro.classList.add('show'));typeStoryLine(storyLines[0]);clearInterval(storyAnimTimer);let anim=0;storyAnimTimer=setInterval(()=>{if(!storyActive)return;const base=storyIndex%storyFrames.length;anim=(anim+1)%3;const pick=anim===0?base:(anim===1?Math.min(3,base+1):base);setStoryFrame(pick);},850)}
 function focusGarage(){try{garage.focus({preventScroll:true});garage.contentWindow.focus();}catch(e){}}
-function finishStory(){if(!storyActive)return;storyActive=false;clearInterval(storyTimer);clearInterval(storyAnimTimer);storyIntro.classList.add('leaving');setTimeout(()=>{storyIntro.style.display='none';storyIntro.classList.remove('show','leaving');focusGarage();},440)}
+function finishStory(){if(!storyActive)return;storyActive=false;clearInterval(storyTimer);clearInterval(storyAnimTimer);storyIntro.classList.add('leaving');setTimeout(()=>{storyIntro.style.display='none';storyIntro.classList.remove('show','leaving');finishNeonOnboarding();},440)}
 function advanceStory(){if(!storyActive)return;if(storyTyping){clearInterval(storyTimer);storyTyping=false;storyText.textContent=storyLines[storyIndex];return}storyIndex++;if(storyIndex>=storyLines.length){finishStory();return}setStoryFrame(storyIndex);typeStoryLine(storyLines[storyIndex])}
 storyIntro.addEventListener('pointerdown',e=>{if(e.target!==storySkip)advanceStory()});storySkip.addEventListener('click',e=>{e.stopPropagation();finishStory()});
 function focusHighwayNow(){setTimeout(()=>{try{highway.setAttribute('tabindex','0');highway.focus({preventScroll:true});highway.contentWindow.focus();highway.contentWindow.postMessage({channel:'neon-input',type:'focus'},'*')}catch(e){}},45)}
@@ -445,7 +445,7 @@ function enterGame(e){
  if(e&&e.type==='keydown'&&['Shift','Control','Alt','Meta','CapsLock','Tab'].includes(e.key))return;
  unlockNeonAudio();
  setNeonAudioMode('garage');
- bootGone=true;boot.classList.add('leaving');setTimeout(()=>{boot.remove();startStory();},620);
+ bootGone=true;boot.classList.add('leaving');setTimeout(()=>{boot.remove();beginNeonSession();},620);
 }
 boot.addEventListener('pointerdown',enterGame);addEventListener('keydown',enterGame);
 
@@ -496,20 +496,24 @@ drift.addEventListener('load',sendDrift);
 garage.addEventListener('load',()=>garage.contentWindow?.postMessage({channel:'neon-highway',type:'save',save},'*'));
 addEventListener('message',event=>{
   const d=event.data||{};
+  if(event.origin!==location.origin||![garage.contentWindow,highway.contentWindow,drag.contentWindow,drift.contentWindow].includes(event.source))return;
   if(d.channel==='neon-audio'){updateNeonGameplayAudio(d);return;}
   if(d.channel==='neon-garage'&&d.type==='start'){
     if(d.appearance)save.appearance=d.appearance;
     try{localStorage.setItem('neon_connected_save',JSON.stringify(save))}catch(e){}
+    window.queueNeonSync?.(save);
     showHighway(d);
   }
   if(d.channel==='neon-garage'&&d.type==='drag'){
     if(d.appearance)save.appearance=d.appearance;
     try{localStorage.setItem('neon_connected_save',JSON.stringify(save))}catch(e){}
+    window.queueNeonSync?.(save);
     showDrag(d);
   }
   if(d.channel==='neon-garage'&&d.type==='drift'){
     if(d.appearance)save.appearance=d.appearance;
     try{localStorage.setItem('neon_connected_save',JSON.stringify(save))}catch(e){}
+    window.queueNeonSync?.(save);
     showDrift(d);
   }
   if(d.channel==='neon-garage'&&d.type==='economy'){
@@ -519,6 +523,7 @@ addEventListener('message',event=>{
       if(d.save.appearance)save.appearance=d.save.appearance;
     }
     try{localStorage.setItem('neon_connected_save',JSON.stringify(save))}catch(e){}
+    window.queueNeonSync?.(save);
   }
   if(d.channel==='neon-drag'&&d.type==='ready'&&drag.style.display!=='none')sendDrag();
   if(d.channel==='neon-drag'&&d.type==='garage')showGarage();
@@ -526,6 +531,7 @@ addEventListener('message',event=>{
     if(Number.isFinite(d.earned))save.credits+=d.earned;
     if(Number.isFinite(d.bestDrag))save.bestDrag=!save.bestDrag?d.bestDrag:Math.min(save.bestDrag,d.bestDrag);
     try{localStorage.setItem('neon_connected_save',JSON.stringify(save))}catch(e){}
+    window.queueNeonSync?.(save);
     garage.contentWindow?.postMessage({channel:'neon-highway',type:'save',save},'*');
   }
   if(d.channel==='neon-drift'&&d.type==='ready'&&drift.style.display!=='none')sendDrift();
@@ -534,6 +540,7 @@ addEventListener('message',event=>{
     if(Number.isFinite(d.earned))save.credits+=d.earned;
     if(Number.isFinite(d.bestDrift))save.bestDrift=!save.bestDrift?d.bestDrift:Math.max(save.bestDrift,d.bestDrift);
     try{localStorage.setItem('neon_connected_save',JSON.stringify(save))}catch(e){}
+    window.queueNeonSync?.(save);
     garage.contentWindow?.postMessage({channel:'neon-highway',type:'save',save},'*');
   }
   if(d.channel==='neon-highway'&&d.type==='ready')sendHighway();
@@ -542,8 +549,9 @@ addEventListener('message',event=>{
     if(d.save)Object.assign(save,d.save);
     if(Number.isFinite(d.earned))save.credits+=d.earned;
     try{localStorage.setItem('neon_connected_save',JSON.stringify(save))}catch(e){}
+    window.queueNeonSync?.(save);
     garage.contentWindow?.postMessage({channel:'neon-highway',type:'save',save},'*');
   }
 });
-</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</script><script src="community.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script></body></html>
