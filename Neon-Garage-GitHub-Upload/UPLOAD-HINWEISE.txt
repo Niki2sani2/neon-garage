@@ -1,0 +1,63 @@
+NEON GARAGE – GAMERNAME & BESTENLISTE
+
+UPLOAD
+1. ZIP entpacken.
+2. Diese acht Dateien gemeinsam ins Hauptverzeichnis des bestehenden
+   GitHub-Repositories Niki2sani2/neon-garage hochladen und ersetzen:
+
+   index.html
+   garage.html
+   highway.html
+   drag.html
+   drift.html
+   supabase-config.js
+   community.js
+   community.css
+
+3. Commit changes. Nach dem GitHub-Pages-Update die bestehende Spieladresse
+   https://niki2sani2.github.io/neon-garage/ neu laden (ggf. Strg+F5).
+
+Keinen zusätzlichen Unterordner hochladen. Die Dateinamen müssen exakt so
+bleiben, ohne [1] oder (2). Diese Hinweise müssen nicht mit hochgeladen werden.
+
+ENTHALTEN
+- Nach dem ersten Monolog bzw. Überspringen ist ein eigener Gamername nötig.
+- Supabase bestätigt den Namen vor dem Zugang zur Garage. Vergebene Namen
+  werden abgefangen. Der bereits vorhandene Player wird weiterverwendet.
+- Bei späteren Starts erscheint kurz: Willkommen zurück, <Username>.
+- BESTENLISTE oben links in der Garage mit Sortierung für Highway/Drift/Drag.
+- Fahrzeugvorschauen verwenden die echten Garage-Sprites: Farbe, Felgen,
+  Tieferlegung, Bremssättel und Spoiler.
+- Die Liste lädt alle Spieler seitenweise. Highway zeigt Kilometer, Drift
+  Punkte und Drag Sekunden. Bei Drag ist eine kleinere positive Zeit besser;
+  ohne absolvierte Bestzeit erscheint ein Strich.
+
+BESTEHENDER SPIELSTAND
+Die ursprüngliche lokale Speicherung unter neon_connected_save, Coins,
+gekaufte Teile und Spielberechnungen bleiben erhalten. Die drei Renn-Dateien
+wurden unverändert übernommen. Die vorhandene Supabase-Sync-Funktion wird
+jetzt an den bestehenden Speicherpunkten aufgerufen und um ride, brake_red
+und spoiler ergänzt. Sync-Fehler werden angezeigt und erneut versucht.
+
+Coins und gekaufte Teile bleiben wie im veröffentlichten Ausgangsstand im
+Browser gespeichert; dieses Update fügt keine geräteübergreifende
+Coin-/Inventar-Wiederherstellung hinzu. Dieselbe GitHub-Adresse und denselben
+Browser weiterverwenden, damit der bestehende lokale Spielstand erhalten bleibt.
+
+SUPABASE
+Die vorhandene Verbindung und anonyme Anmeldung werden weiterverwendet.
+Erwartet werden die bereits im ursprünglichen Setup angelegten players-Felder:
+user_id, username, highway_score, drift_score, drag_score, color, wheel,
+ride, brake_red, spoiler, einschließlich der vorhandenen Leserechte für
+angemeldete Spieler und Änderungsrechte für den eigenen Datensatz.
+Keine Datenbankänderung wurde vorgenommen.
+
+PRÜFUNG
+JavaScript-Syntax aller Dateien geprüft. Im Browser mit isolierten Testdaten
+geprüft: erster Monolog, Pflichtname, vergebener Name, Speicherfehler,
+Rückkehrbegrüßung, Daten-Paginierung, Drag-Sortierung, sichere Namensanzeige,
+Leaderboard-Fehler und erneutes Laden, Coin-Erhalt, Tuning-Synchronisierung,
+Ausblenden des Buttons im Rennen und Darstellung ohne horizontalen Überlauf.
+Fahrzeugvorschau visuell geprüft. Keine Testspieler oder Testwerte wurden in
+deine echte Supabase-Datenbank geschrieben. Live-End-to-End-Test nach Upload
+steht noch aus.
